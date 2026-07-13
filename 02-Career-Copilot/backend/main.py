@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
+
+from services.pdf_parser import extract_text_from_pdf
 
 app = FastAPI(
     title= "Career Copilot API",
@@ -24,4 +26,35 @@ def analyze_application(request: AnalyzeRequest) -> dict[str, str | int]:
         "status": "received",
         "resume_length": len(request.resume),
         "job_description_length": len(request.job_description)
+        }
+
+@app.post("/upload-resume")
+async def upload_resume(file: UploadFile = File(...))-> dict[str, str | int]:
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid file type. Please upload a PDF file.")
+    
+    file_content = await file.read()
+
+    if not file_content:
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid file content. Please upload a valid PDF file.")
+    try:
+        extracted_text, page_count = extract_text_from_pdf(file_content)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Unable to read the uploaded PDF"
+        )
+    if not extracted_text:
+        raise HTTPException(
+            status_code=422,
+            detail="No readable text was found in the PDF.",
+        )
+    return {
+            "filename": file.filename or "resume.pdf",
+            "pages": page_count,
+            "text": extracted_text,
         }
