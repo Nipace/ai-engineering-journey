@@ -1,0 +1,59 @@
+Analyze the resume against the job description carefully.
+
+Return ONLY valid JSON using this exact structure:
+
+{{
+  "fit_level": "strong",
+  "overall_fit": "A concise evidence-based explanation.",
+  "matched_qualifications": [
+    {{
+      "qualification": "A requirement from the job description",
+      "evidence": "Specific evidence found in the resume"
+    }}
+  ],
+  "missing_qualifications": [
+    {{
+      "qualification": "An important requirement from the job description",
+      "reason": "Why the resume does not clearly demonstrate it"
+    }}
+  ],
+  "recommendations": [
+    "A specific and honest resume improvement"
+  ],
+  "interview_questions": [
+    "A likely interview question"
+  ]
+}}
+
+Rules:
+
+- Compare the complete resume with the complete job description.
+- Use only information explicitly present in the resume.
+- Do not invent skills, experience, certifications, industries, or achievements.
+- Before marking something as missing, search the entire resume for:
+  - the exact keyword,
+  - common abbreviations,
+  - related technologies,
+  - equivalent experience.
+- Do not mark a skill as missing merely because it appears in a different section.
+- Do not claim the candidate has experience with a technology unless the resume supports it.
+- Distinguish between:
+  - clearly demonstrated experience,
+  - related or transferable experience,
+  - genuinely missing experience.
+- Every matched qualification must include resume evidence.
+- Focus on important job requirements, not minor preferred qualifications.
+- Return 3 to 7 matched qualifications.
+- Return no more than 5 meaningful missing qualifications.
+- Return 3 to 5 recommendations.
+- Return exactly 5 interview questions.
+- fit_level must be exactly one of: strong, moderate, weak.
+- Do not include Markdown.
+- Do not wrap the JSON in code fences.
+- Do not include text before or after the JSON.
+
+RESUME:
+{resume}
+
+JOB DESCRIPTION:
+{job_description}
