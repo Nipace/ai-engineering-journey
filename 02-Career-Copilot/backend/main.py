@@ -2,6 +2,7 @@ from fastapi import FastAPI,File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from services.pdf_parser import extract_text_from_pdf
+from services.ai_service import analyze_resume_with_ai
 
 app = FastAPI(
     title= "Career Copilot API",
@@ -13,6 +14,9 @@ class AnalyzeRequest(BaseModel):
     resume: str = Field(..., min_length=20, description="The resume to analyze.")
     job_description: str = Field(..., min_length=20, description="The job description to analyze against.")
     
+class AnalyzeResponse(BaseModel):
+    status: str
+    analysis: str
 
 @app.get("/")
 async def health_check() -> dict[str, str]:
@@ -20,13 +24,25 @@ async def health_check() -> dict[str, str]:
         "message": "Career Copilot API is running",
         "status": "healthy"
         }
-@app.post("/analyze")
-def analyze_application(request: AnalyzeRequest) -> dict[str, str | int]:
-    return {
-        "status": "received",
-        "resume_length": len(request.resume),
-        "job_description_length": len(request.job_description)
-        }
+@app.post("/analyze", response_model=AnalyzeResponse)
+def analyze_application(request: AnalyzeRequest) -> AnalyzeResponse:
+    try:
+        analysis = analyze_resume_with_ai(request.resume, request.job_description)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=exc.args[0],
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="The AI service is currently unavailable.",
+        ) from exc
+    
+    return AnalyzeResponse(
+        status="completed",
+        analysis=analysis,
+    )
 
 @app.post("/upload-resume")
 async def upload_resume(file: UploadFile = File(...))-> dict[str, str | int]:
