@@ -6,11 +6,33 @@ from models.analysis import AnalyzeResponse
 from services.pdf_parser import extract_text_from_pdf
 from services.ai_service import analyze_resume_with_ai
 
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(
-    title= "Career Copilot API",
-    description= "Analyze a resume against a job description.",
-    version= "0.0.1"
+    title="Career Copilot API",
+    description="""
+AI-powered resume analyzer.
+
+Features
+
+- Resume upload
+- PDF extraction
+- Job matching
+- AI recommendations
+- Interview question generation
+""",
+    version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class AnalyzeRequest(BaseModel):
